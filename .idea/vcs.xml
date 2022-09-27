@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/VBFL-B/VBFL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/VBFL-B/VBFL/original/VBFL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/VBFL-BFL/VBFL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/VBFL-BFL/VBFL/original/VBFL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/VBFL-FL/VBFL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/VBFL-FL/VBFL/original/VBFL" vcs="Git" />
+  </component>
+</project>
