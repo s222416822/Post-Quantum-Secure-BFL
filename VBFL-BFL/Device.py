@@ -1252,30 +1252,35 @@ class Device:
         self.local_update_time = time.time()
         is_malicious_node = "M" if self.return_is_malicious() else "B"
         self.local_updates_rewards_per_transaction = 0
-        losses = []
+
         for epoch in range(local_epochs):
             running_loss = 0.0
+            i = 0
             for data, label in self.train_dl:
                 data, label = data.to(self.dev), label.to(self.dev)
-                preds = self.net(data)   # Compute prediction error  # print("Preds", preds)
+
+                self.opti.zero_grad()  # zero the parameter gradients
+
+                # forward + backward + optimize
+                preds = self.net(data)
                 loss = self.loss_func(preds, label)
-                loss.backward()  #Backpropagation    # print("Loss", loss.item())
+                loss.backward()
                 self.opti.step()
-                self.opti.zero_grad()
+
+                # print statistics
                 running_loss += loss.item() * label.size(0)
-                print("Size of Data DEV:",label.shape[0])
-                losses.append(running_loss/len(self.train_dl))
+
+                if i % 2000 == 1999:  # print every 2000 mini-batches
+                    print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+                    running_loss = 0.0
+
                 self.local_updates_rewards_per_transaction += (rewards * label.shape[0])
             self.local_total_epoch += 1
         try:
             self.local_update_time = (time.time() - self.local_update_time)/self.computation_power
         except:
             self.local_update_time = float('inf')
-        if self.is_malicious:
-            self.net.apply(self.malicious_worker_add_noise_to_weights)
-            print(f"-----------------------------------------------malicious worker {self.idx} has added noise to its local updated weights before transmitting")
-            with open(f"{log_files_folder_path_comm_round}/comm_{comm_round}_variance_of_noises.txt", "a") as file:
-                file.write(f"{self.return_idx()} {self.return_role()} {is_malicious_node} noise variances: {self.variance_of_noises}\n")
+
         print(f"Done {local_epochs} epoch(s) and total {self.local_total_epoch} epochs")
         self.local_train_parameters = self.net.state_dict()
         return self.local_update_time
