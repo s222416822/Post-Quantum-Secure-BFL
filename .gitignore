@@ -4,3 +4,4 @@ benchmark_d
 __pycache__/
 logs/
 #*.txt
+venv
