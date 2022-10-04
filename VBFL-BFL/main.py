@@ -47,7 +47,7 @@ from sortedcontainers import SortedDict
 import logging
 
 
-logging.basicConfig(filename="log.txt", level=logging.DEBUG)
+# logging.basicConfig(filename="log.txt", level=logging.DEBUG)
 
 # set program execution time for logging purpose
 date_time = datetime.now().strftime("%m%d%Y_%H%M%S")
@@ -1022,36 +1022,7 @@ if __name__=="__main__":
 
 
         print(''' Step 3 - validators do self and cross-validation(validate local updates from workers) by the order of transaction arrival time.\n''')
-        # for validator_iter in range(len(validators_this_round)):
-        #     validator = validators_this_round[validator_iter]
-        #     final_transactions_arrival_queue = validator.return_final_transactions_validating_queue()
-        #     if final_transactions_arrival_queue:
-        #         # validator asynchronously does one epoch of update and validate on its own test set
-        #         local_validation_time = validator.validator_update_model_by_one_epoch_and_validate_local_accuracy(
-        #             args['optimizer'])
-        #         print(
-        #             f"{validator.return_idx()} - validator {validator_iter + 1}/{len(validators_this_round)} is validating received worker transactions...")
-        #         for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
-        #             if validator.is_online:
-        #                 # validation won't begin until validator locally done one epoch of update and validation(worker transactions will be queued)
-        #                 if arrival_time < local_validation_time:
-        #                     arrival_time = local_validation_time
-        #                 validation_time, post_validation_unconfirmmed_transaction = validator.validate_worker_transaction(
-        #                     unconfirmmed_transaction, rewards, log_files_folder_path, comm_round,
-        #                     args['malicious_validator_on'], average_accuracies)
-        #                 if validation_time:
-        #                     validator.add_post_validation_transaction_to_queue((arrival_time + validation_time,
-        #                                                                         validator.return_link_speed(),
-        #                                                                         post_validation_unconfirmmed_transaction))
-        #                     print(
-        #                         f"A validation process has been done for the transaction from worker {post_validation_unconfirmmed_transaction['worker_device_idx']} by validator {validator.return_idx()}")
-        #             else:
-        #                 print(
-        #                     f"A validation process is skipped for the transaction from worker {post_validation_unconfirmmed_transaction['worker_device_idx']} by validator {validator.return_idx()} due to validator offline.")
-        #     else:
-        #         print(
-        #             f"{validator.return_idx()} - validator {validator_iter + 1}/{len(validators_this_round)} did not receive any transaction from worker or validator in this round.")
-        all_losses = []
+        # all_losses = []
         all_accuracies = []
         for validator_iter in range(len(validators_this_round)):
 
@@ -1100,51 +1071,23 @@ if __name__=="__main__":
                             f"Signature of transaction from worker {worker_transaction_device_idx} is verified by validator {validator.idx}!")
                         unconfirmmed_transaction['worker_signature_valid'] = True
 
-                total_losses = 0
-                total_accuracy = 0
-                average_loss = 0
-                counter = 0
+                # total_losses = 0
+                # total_accuracy = 0
+                # average_loss = 0
+                # counter = 0
 
-                lossesArray = []
-                lossOnly = []
-                workers_ids = []
+                # lossesArray = []
+                # lossOnly = []
+                # workers_ids = []
 
                 #Calculate Average Validation loss of all workers
-                for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
+                # for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
 
-                    counter += 1
-                    worker_device_idd = unconfirmmed_transaction["worker_device_idx"]
-                    workers_ids.append(worker_device_idd)
+                    # counter += 1
+                    # worker_device_idd = unconfirmmed_transaction["worker_device_idx"]
+                    # workers_ids.append(worker_device_idd)
                     # accuracy validated by worker's update
-                    # accuracy_by_worker_update_using_own_data = self.validate_model_weights(unconfirmmed_transaction["local_updates_params"])
-                    accuracy_by_worker_update_using_own_data, losses = validator.validate_model_weights1(
-                        unconfirmmed_transaction["local_updates_params"], worker_device_idd, comm_round)
-                    all_losses.append(sum(losses)/len(losses))
-                    all_accuracies.append(accuracy_by_worker_update_using_own_data)
-                    lossesArray.append(f"{sum(losses)/len(losses)}: Worker: {worker_device_idd} by Validator: {validator.idx}") #Append to loss array to find the difference
-                    validator.devices_dict[worker_device_idd].validation_loss = sum(losses)/len(losses)
-                    validator.devices_dict[worker_device_idd].validation_accuracy = accuracy_by_worker_update_using_own_data
-                    total_losses += sum(losses)/len(losses)
-                    total_accuracy += accuracy_by_worker_update_using_own_data
-
-                average_loss = total_losses/counter
-                average_accuracy = total_accuracy/counter
-
-
-                print("Average Loss:", total_losses/counter)
-
-                # if validator_iter == len(validators_this_round) - 1:
-                #     # Get record of loss values
-                with open(f"{bench_folder}/loss.txt", "a") as file:
-                    file.write(f"Communication Round: {comm_round} - Loss Array: {lossesArray}\n")
-                with open(f"{bench_folder}/all_losses.txt", "a") as file:
-                    file.write(f"Communication Round: {comm_round} - All Loss Array: {all_losses}\n")
-                with open(f"{bench_folder}/all_accuracies.txt", "a") as file:
-                    file.write(f"Communication Round: {comm_round} - All Accuracies: {all_accuracies}\n")
-
-
-                
-
+                    # accuracy_by_worker_update_using_own_data = validator.validate_model_weights(unconfirmmed_transaction["local_updates_params"])
 
 
                 #Check if loss value is too big, if yes then detectMalcious is True
@@ -1563,8 +1506,8 @@ if __name__=="__main__":
         if len(added_blocks_miner_set) > 1:
             print("WARNING: a forking event just happened!")
             forking_happened = True
-            with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file:
-                file.write(f"Forking in round {comm_round}\n")
+            # with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file:
+            #     file.write(f"Forking in round {comm_round}\n")
         else:
             print("No forking event happened.")
 
@@ -1581,29 +1524,9 @@ if __name__=="__main__":
 
         print(''' Logging Accuracies by Devices ''')
 
-        # # DEV To calculate average accuracy
-        # average_accuracy = 0
-        # total_accuracy = 0
-        # total_honest_online_devices = 0
-        # for device in devices_list:
-        #     # TODO change to detected malicious here. DEV
-        #     if not device.is_malicious and device.is_online():
-        #         total_honest_online_devices += 1
-        #         accuracy, losses = device.validate_model_weights()
-        #     # DEV --------------------
-        #     # if device.return_is_malicious():
-        #         total_accuracy += accuracy
-        #     # if i == (len(devices_list) - 1):
-        #     #     average_accuracy = total_accuracy / len(devices_list)  # DEV ADDED this code
-        #     # -------------------------- DEV
-        # # average_accuracy = total_accuracy / len(devices_list)  # DEV ADDED this code
-        # average_accuracy = total_accuracy / total_honest_online_devices
-        #
-        # average_accuracies.append(average_accuracy)
-
         for i,device in enumerate(devices_list):
             if device.is_online():
-                accuracy_this_round, losses = device.validate_model_weights()
+                accuracy_this_round = device.validate_model_weights()
             else:
                 accuracy_this_round = 0
 
@@ -1648,9 +1571,9 @@ if __name__=="__main__":
                 no_block_msg = "No valid block has been generated this round."
                 print(no_block_msg)
                 file.write(f"comm_round_block_gen_time: {no_block_msg}\n")
-                with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file2:
-                    # TODO this may be caused by "no transaction to mine" for the miner. Forgot to check for block miner's maliciousness in request_to_downlaod()
-                    file2.write(f"No valid block in round {comm_round}\n")
+                # with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file2:
+                #     # TODO this may be caused by "no transaction to mine" for the miner. Forgot to check for block miner's maliciousness in request_to_downlaod()
+                #     file2.write(f"No valid block in round {comm_round}\n")
             try:
                 slowest_round_ends_time = max(all_devices_round_ends_time)  #DEV for simulation
                 # slowest_round_ends_time = 0
@@ -1688,7 +1611,6 @@ if __name__=="__main__":
 
         print(''' Logging Stake by Devices ''')
         for device in devices_list:
-            accuracy_this_round = device.validate_model_weights()
             with open(f"{log_files_folder_path_comm_round}/stake_comm_{comm_round}.txt", "a") as file:
                 is_malicious_node = "M" if device.return_is_malicious() else "B"
                 file.write(

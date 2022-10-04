@@ -7,6 +7,8 @@ from matplotlib import cm
 from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
 
+import torch.nn.functional as F
+
 from datetime import datetime
 
 import oqs
@@ -28,6 +30,8 @@ import pandas as pd
 from merkle_wotsplus import MerkleTree
 import winternitz.signatures
 from utils import shake128
+
+import torchvision
 
 from XMSS import *
 
@@ -93,6 +97,8 @@ bench_folder = f"benchmark_d"
 
 benchmarkFile = open(f"{bench_folder}/benchmark.txt", "a")
 
+
+# noinspection PyUnreachableCode
 class Device:
     def __init__(self, idx, assigned_train_ds, assigned_test_dl, local_batch_size, learning_rate, loss_func, opti, network_stability, net, dev, miner_acception_wait_time, miner_accepted_transactions_size_limit, validator_threshold, pow_difficulty, even_link_speed_strength, base_data_transmission_speed, even_computation_power, is_malicious, noise_variance, check_signature, not_resync_chain, malicious_updates_discount, knock_out_rounds, lazy_worker_knock_out_rounds):
         self.idx = idx
@@ -1245,45 +1251,12 @@ class Device:
                 m.weight.add_(noise.to(self.dev))
                 self.variance_of_noises.append(float(variance_of_noise))
 
-    # TODO change to computation power
-    def worker_local_update(self, rewards, log_files_folder_path_comm_round, comm_round, local_epochs=1):
-        print(f"Worker {self.idx} is doing local_update with computation power {self.computation_power} and link speed {round(self.link_speed,3)} bytes/s")
-        self.net.load_state_dict(self.global_parameters, strict=True)
-        self.local_update_time = time.time()
-        is_malicious_node = "M" if self.return_is_malicious() else "B"
-        self.local_updates_rewards_per_transaction = 0
+    def imshow(self, img):
+        img = img / 2 + 0.5  # unnormalize
+        npimg = img.numpy()
+        plt.imshow(np.transpose(npimg, (1, 2, 0)))
+        plt.show()
 
-        for epoch in range(local_epochs):
-            running_loss = 0.0
-            i = 0
-            for data, label in self.train_dl:
-                data, label = data.to(self.dev), label.to(self.dev)
-
-                self.opti.zero_grad()  # zero the parameter gradients
-
-                # forward + backward + optimize
-                preds = self.net(data)
-                loss = self.loss_func(preds, label)
-                loss.backward()
-                self.opti.step()
-
-                # print statistics
-                running_loss += loss.item() * label.size(0)
-
-                if i % 2000 == 1999:  # print every 2000 mini-batches
-                    print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-                    running_loss = 0.0
-
-                self.local_updates_rewards_per_transaction += (rewards * label.shape[0])
-            self.local_total_epoch += 1
-        try:
-            self.local_update_time = (time.time() - self.local_update_time)/self.computation_power
-        except:
-            self.local_update_time = float('inf')
-
-        print(f"Done {local_epochs} epoch(s) and total {self.local_total_epoch} epochs")
-        self.local_train_parameters = self.net.state_dict()
-        return self.local_update_time
 
     # used to simulate time waste when worker goes offline during transmission to validator
     def waste_one_epoch_local_update_time(self, opti):
@@ -1372,66 +1345,140 @@ class Device:
     def return_received_block_from_miner(self):
         return self.received_block_from_miner
 
+        # https: // pytorch.org / tutorials / beginner / blitz / cifar10_tutorial.html
+        # TODO change to computation power
+
+    def worker_local_update(self, rewards, log_files_folder_path_comm_round, comm_round, local_epochs=5):
+        print(
+            f"Worker {self.idx} is doing local_update with computation power {self.computation_power} and link speed {round(self.link_speed, 3)} bytes/s")
+        self.net.load_state_dict(self.global_parameters, strict=True)
+        self.local_update_time = time.time()
+        is_malicious_node = "M" if self.return_is_malicious() else "B"
+        self.local_updates_rewards_per_transaction = 0
+
+        dataiter = iter(self.train_dl)
+        images, labels = dataiter.next()
+
+        total_step = len(self.train_dl)
+        for epoch in range(local_epochs):
+            running_loss = 0.0
+            # i = 0
+            for batch_idx, (data, label) in enumerate(self.train_dl):
+
+                data, label = data.to(self.dev), label.to(self.dev)
+
+                self.opti.zero_grad()  # zero the parameter gradients
+
+                # forward + backward + optimize
+                preds = self.net(data)
+                # print(f"Preds: {preds}, Data: {data}")
+                loss = self.loss_func(preds, label)
+                loss.backward()
+                self.opti.step()
+
+                # print statistics
+                running_loss += loss.item()
+
+                if batch_idx % 10 == 0:
+                    print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                        epoch, batch_idx * len(data), len(self.train_dl.dataset),
+                               100. * batch_idx / len(self.train_dl), loss.item()))
+
+                # if (i + 1) % 10 == 0:
+                #     print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
+                #           .format(epoch + 1, local_epochs, i + 1, total_step, loss.item()))
+                #
+                # if i % 10 == 9:  # print every 10 mini-batches
+                #     print(f'[Epoch: {epoch + 1}, Batch: {i + 1:5d}] loss: {running_loss / 10:.3f}')
+                #     running_loss = 0.0
+
+                # i += 1
+                # print(
+                #     "i value------------------------------------------------------------------------------------------:",
+                #     i)
+
+                self.local_updates_rewards_per_transaction += (rewards * label.shape[0])
+
+            print("Data Size:", data.size(), "Data Shape:", data.shape)
+            self.local_total_epoch += 1
+        try:
+            self.local_update_time = (time.time() - self.local_update_time) / self.computation_power
+        except:
+            self.local_update_time = float('inf')
+
+        print(f"Done {local_epochs} epoch(s) and total {self.local_total_epoch} epochs")
+        self.local_train_parameters = self.net.state_dict()
+
+        return self.local_update_time
+
+    test_losses = []
     def validate_model_weights(self, weights_to_eval=None):
+        # since we're not training, we don't need to calculate the gradients for our outputs
         with torch.no_grad():
             if weights_to_eval:
                 self.net.load_state_dict(weights_to_eval, strict=True)
             else:
                 self.net.load_state_dict(self.global_parameters, strict=True)
-            sum_accu = 0
-            num = 0
-            valid_loss = 0.0
+            correct = 0
+            total = 0
+            test_loss = 0
+            # valid_loss = 0.0
             losses = []
             for data, label in self.test_dl:
                 data, label = data.to(self.dev), label.to(self.dev)
-                preds = self.net(data)
-                loss = self.loss_func(preds, label)  #DEV ADDED
-
-                preds = torch.argmax(preds, dim=1)
-                sum_accu += (preds == label).float().mean()
-                num += 1
-
+                preds = self.net(data)  # calculate outputs by running images through the network
+                # test_loss += F.nll_loss(preds, label, size_average=False).item()
+                loss = self.loss_func(preds, label)
+                test_loss += loss.item()
+                preds = torch.argmax(preds, dim=1)  # the class with the highest energy is what we choose as prediction
+                total += label.size(0)
+                correct += (preds == label).sum().item()
             # print(sum_accu / num)
+            # return float(sum_accu / num), loss
+            #es
+            return correct//total
 
-            # return float(sum_accu / num), losses
-            return sum_accu / num, losses
+        test_loss /= len(self.test_dl.dataset)
+        test_losses.append(test_loss)
+        print('\nTest set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+            test_loss, correct, len(self.test_dl.dataset),
+            100. * correct / len(self.test_dl.dataset)))
 
 
 
-    def validate_model_weights1(self, weights_to_eval, deviceId, comm_round):
-        with torch.no_grad():
-            if weights_to_eval:
-                self.net.load_state_dict(weights_to_eval, strict=True)
-
-            sum_accu = 0
-            num = 0
-            valid_loss = 0.0
-            losses = []
-            for data, label in self.test_dl:
-                data, label = data.to(self.dev), label.to(self.dev)
-                preds = self.net(data)
-                loss = self.loss_func(preds, label)  #DEV ADDED
-
-                preds = torch.argmax(preds, dim=1)
-                sum_accu += (preds == label).float().mean()
-                num += 1
-                # if weights_to_eval:
-                print("validation Loss:", loss.item())
-                valid_loss += loss.item() * data.size(0)
-                losses.append(valid_loss / len(self.test_dl))
-                print("NUM============", num)
-            # epoch_loss = valid_loss/
-
-            with open(f"{bench_folder}/validation.txt","a") as file:
-                file.write(f"COMM ROUND: {comm_round} | Validation done by {self.return_idx()} for worker {deviceId}  which is  {str(self.devices_dict[deviceId].is_malicious)}\n")
-                file.write(f"{losses}\n")
-            # plt.scatter(range(len(losses)), losses)
-            # print("Validation Lossess:",losses)
-            # plt.title()
-            # # plt.show()
-            # print(sum_accu / num)
-            return float(sum_accu / num), losses
-
+    # def validate_model_weights1(self, weights_to_eval, deviceId, comm_round):
+    #     with torch.no_grad():
+    #         if weights_to_eval:
+    #             self.net.load_state_dict(weights_to_eval, strict=True)
+    #
+    #         sum_accu = 0
+    #         num = 0
+    #         valid_loss = 0.0
+    #         losses = []
+    #         for data, label in self.test_dl:
+    #             data, label = data.to(self.dev), label.to(self.dev)
+    #             preds = self.net(data)
+    #             loss = self.loss_func(preds, label)  #DEV ADDED
+    #
+    #             preds = torch.argmax(preds, dim=1)
+    #             sum_accu += (preds == label).float().mean()
+    #             num += 1
+    #             # if weights_to_eval:
+    #             print("validation Loss:", loss.item())
+    #             valid_loss += loss.item() * data.size(0)
+    #             losses.append(valid_loss / len(self.test_dl))
+    #             print("NUM============", num)
+    #         # epoch_loss = valid_loss/
+    #
+    #         with open(f"{bench_folder}/validation.txt","a") as file:
+    #             file.write(f"COMM ROUND: {comm_round} | Validation done by {self.return_idx()} for worker {deviceId}  which is  {str(self.devices_dict[deviceId].is_malicious)}\n")
+    #             file.write(f"{losses}\n")
+    #         # plt.scatter(range(len(losses)), losses)
+    #         # print("Validation Lossess:",losses)
+    #         # plt.title()
+    #         # # plt.show()
+    #         # print(sum_accu / num)
+    #         return float(sum_accu / num), losses
 
     def global_update(self, local_update_params_potentially_to_be_used):
         # filter local_params
@@ -1976,6 +2023,7 @@ class Device:
             print(f"validator {self.idx} locally updated model has accuracy {self.validator_local_accuracy} on its local test set")
             return (time.time() - local_validation_time)/self.computation_power
 
+    # https: // pytorch.org / tutorials / beginner / blitz / cifar10_tutorial.html
     # TODO validator_threshold
     def validate_worker_transaction(self, transaction_to_validate, rewards, log_files_folder_path, comm_round,
                                     malicious_validator_on, average_accuracies):

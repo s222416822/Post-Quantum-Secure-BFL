@@ -1,0 +1,9 @@
+pip3 install numpy
+pip3 install torch torchvision
+pip install matplotlib
+pip install pycryptodome
+pip install winternitz
+pip install pandas
+pip install sklearn
+python3 -m pip install tqdm
+pip install sortedcontainers
