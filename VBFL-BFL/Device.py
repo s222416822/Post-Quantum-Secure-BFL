@@ -236,8 +236,6 @@ class Device:
         self.validation_accuracy = 0
 
 
-
-
     ''' Common Methods '''
 
     def decrease_banned_for(self):
@@ -1249,63 +1247,26 @@ class Device:
 
     # TODO change to computation power
     def worker_local_update(self, rewards, log_files_folder_path_comm_round, comm_round, local_epochs=1):
-        # local_epochs = random.randint(1, 2) # For role plot only
-        # local_epochs = random.randint(1, 5) #For accuracy
         print(f"Worker {self.idx} is doing local_update with computation power {self.computation_power} and link speed {round(self.link_speed,3)} bytes/s")
         self.net.load_state_dict(self.global_parameters, strict=True)
         self.local_update_time = time.time()
-        # local worker update by specified epochs
-        # usually, if validator acception time is specified, local_epochs should be 1
-        # logging maliciousness
         is_malicious_node = "M" if self.return_is_malicious() else "B"
         self.local_updates_rewards_per_transaction = 0
-
         losses = []
         for epoch in range(local_epochs):
             running_loss = 0.0
-
             for data, label in self.train_dl:
                 data, label = data.to(self.dev), label.to(self.dev)
-
-                # Compute prediction error
-                preds = self.net(data)
-                # print("Preds", preds)
+                preds = self.net(data)   # Compute prediction error  # print("Preds", preds)
                 loss = self.loss_func(preds, label)
-
-                #Backpropagation
-                # print("Loss", loss.item())
-                loss.backward()
+                loss.backward()  #Backpropagation    # print("Loss", loss.item())
                 self.opti.step()
                 self.opti.zero_grad()
-                # self.local_updates_rewards_per_transaction += rewards * (label.shape[0])
-                # running_loss += loss.item() * data.size(0)
                 running_loss += loss.item() * label.size(0)
                 print("Size of Data DEV:",label.shape[0])
                 losses.append(running_loss/len(self.train_dl))
-
-                #DEV workers rewards unit reward into number of epochs
-                # self.local_updates_rewards_per_transaction += (rewards * local_epochs) + (rewards * label.shape[0])
-                self.local_updates_rewards_per_transaction += (rewards * label.shape[0])  #already epoch calculatd with loop
-
-
-                print("Worker Reward calculation", self.local_updates_rewards_per_transaction)
-            # record accuracies to find good -vh
-            # with open(f"{log_files_folder_path_comm_round}/worker_{self.idx}_{is_malicious_node}_local_updating_accuracies_comm_{comm_round}.txt", "a") as file:
-            #     file.write(f"{self.return_idx()} epoch_{epoch+1} {self.return_role()} {is_malicious_node}: {self.validate_model_weights(self.net.state_dict())}\n")
+                self.local_updates_rewards_per_transaction += (rewards * label.shape[0])
             self.local_total_epoch += 1
-
-
-        # fig = plt.figure()
-        # ax = fig.gca(projection='3d')
-        # # X, Y = np.meshgrid(range(len(losses)), range(len(losses)))
-        #
-        # # surfacte = ax.plot_surface(X,Y, losses, cmap=cm.coolwarm, rstride=2, cstride=2)
-        # plt.plot(range(len(losses)),losses)
-        # print(losses)
-        # plt.title(self.return_idx() + str(self.return_is_malicious()))
-        # plt.show()
-        # print(losses)
-        # local update done
         try:
             self.local_update_time = (time.time() - self.local_update_time)/self.computation_power
         except:
@@ -1313,16 +1274,8 @@ class Device:
         if self.is_malicious:
             self.net.apply(self.malicious_worker_add_noise_to_weights)
             print(f"-----------------------------------------------malicious worker {self.idx} has added noise to its local updated weights before transmitting")
-            print(
-                f"-----------------------------------------------malicious worker {self.idx} has added noise to its local updated weights before transmitting")
-            print(
-                f"-----------------------------------------------malicious worker {self.idx} has added noise to its local updated weights before transmitting")
-
             with open(f"{log_files_folder_path_comm_round}/comm_{comm_round}_variance_of_noises.txt", "a") as file:
                 file.write(f"{self.return_idx()} {self.return_role()} {is_malicious_node} noise variances: {self.variance_of_noises}\n")
-        # record accuracies to find good -vh
-        # with open(f"{log_files_folder_path_comm_round}/worker_final_local_accuracies_comm_{comm_round}.txt", "a") as file:
-        #     file.write(f"{self.return_idx()} {self.return_role()} {is_malicious_node}: {self.validate_model_weights(self.net.state_dict())}\n")
         print(f"Done {local_epochs} epoch(s) and total {self.local_total_epoch} epochs")
         self.local_train_parameters = self.net.state_dict()
         return self.local_update_time

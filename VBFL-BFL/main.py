@@ -912,10 +912,6 @@ if __name__=="__main__":
                             if worker.is_online():
                                 local_update_spent_time = worker.worker_local_update(rewards, log_files_folder_path_comm_round, comm_round)
                                 unverified_transaction = worker.return_local_updates_and_signature(comm_round)
-
-
-
-
                                 # size in bytes, usually around 35000 bytes per transaction
                                 unverified_transactions_size = getsizeof(str(unverified_transaction))
 
