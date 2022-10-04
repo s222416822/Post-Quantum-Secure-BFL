@@ -2114,9 +2114,9 @@ class Device:
                 if self.is_malicious and malicious_validator_on:
                     old_voting = transaction_to_validate['update_direction']
                     transaction_to_validate['update_direction'] = not transaction_to_validate['update_direction']
-                    with open(f"{log_files_folder_path_comm_round}/malicious_validator_log.txt", 'a') as file:
-                        file.write(
-                            f"malicious validator {self.idx} has flipped the voting of worker {worker_transaction_device_idx} from {old_voting} to {transaction_to_validate['update_direction']} in round {comm_round}\n")
+                    # with open(f"{log_files_folder_path_comm_round}/malicious_validator_log.txt", 'a') as file:
+                    #     file.write(
+                    #         f"malicious validator {self.idx} has flipped the voting of worker {worker_transaction_device_idx} from {old_voting} to {transaction_to_validate['update_direction']} in round {comm_round}\n")
                 transaction_to_validate['validation_rewards'] = 2 * rewards
             else:
                 transaction_to_validate['update_direction'] = 'N/A'
