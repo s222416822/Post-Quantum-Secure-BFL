@@ -160,7 +160,6 @@ class Device:
         self.dilithium_public_key = None
         self.dilithium_signatures = []  # to store dilithium signatures
 
-
         self.generate_dilithium_key()
 
         # xmss key pair
@@ -1271,8 +1270,6 @@ class Device:
                 preds = self.net(data)
                 # print(f"Preds: {preds}, Data: {data}")
                 loss = self.loss_func(preds, label)
-
-
 
                 loss.backward()
                 self.opti.step()

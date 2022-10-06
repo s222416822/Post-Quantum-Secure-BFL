@@ -646,7 +646,7 @@ class Device:
             return False
 
         benchmarkDict["xVerify"].append(time.time() - xv)
-        benchmarkFile.write(f"{benchmarkDict}\n")
+        # benchmarkFile.write(f"{benchmarkDict}\n")
 
 
         return h == merkle_public
@@ -1423,65 +1423,99 @@ class Device:
     def return_received_block_from_miner(self):
         return self.received_block_from_miner
 
+    # def validate_model_weights(self, weights_to_eval=None):
+    #     with torch.no_grad():
+    #         if weights_to_eval:
+    #             self.net.load_state_dict(weights_to_eval, strict=True)
+    #         else:
+    #             self.net.load_state_dict(self.global_parameters, strict=True)
+    #         sum_accu = 0
+    #         num = 0
+    #         valid_loss = 0.0
+    #         losses = []
+    #         for data, label in self.test_dl:
+    #             data, label = data.to(self.dev), label.to(self.dev)
+    #             preds = self.net(data)
+    #             loss = self.loss_func(preds, label)  #DEV ADDED
+    #
+    #             preds = torch.argmax(preds, dim=1)
+    #             sum_accu += (preds == label).float().mean()
+    #             num += 1
+    #
+    #         # print(sum_accu / num)
+    #
+    #         # return float(sum_accu / num), losses
+    #         return sum_accu / num, losses
+
     def validate_model_weights(self, weights_to_eval=None):
+        # since we're not training, we don't need to calculate the gradients for our outputs
         with torch.no_grad():
             if weights_to_eval:
                 self.net.load_state_dict(weights_to_eval, strict=True)
             else:
                 self.net.load_state_dict(self.global_parameters, strict=True)
-            sum_accu = 0
-            num = 0
-            valid_loss = 0.0
+            correct = 0
+            total = 0
+            test_loss = 0
+            # valid_loss = 0.0
             losses = []
+            test_losses = []
             for data, label in self.test_dl:
                 data, label = data.to(self.dev), label.to(self.dev)
-                preds = self.net(data)
-                loss = self.loss_func(preds, label)  #DEV ADDED
-
-                preds = torch.argmax(preds, dim=1)
-                sum_accu += (preds == label).float().mean()
-                num += 1
-
+                preds = self.net(data)  # calculate outputs by running images through the network
+                # test_loss += F.nll_loss(preds, label, size_average=False).item()
+                loss = self.loss_func(preds, label)
+                test_loss += loss.item()
+                preds = torch.argmax(preds, dim=1)  # the class with the highest energy is what we choose as prediction
+                correct += (preds == label).float().mean()
+                total += 1
             # print(sum_accu / num)
+            # return float(sum_accu / num), loss
 
-            # return float(sum_accu / num), losses
-            return sum_accu / num, losses
+            # es
+
+            test_loss /= len(self.test_dl.dataset)
+            test_losses.append(test_loss)
+            print('\nTest set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+                test_loss, correct, len(self.test_dl.dataset),
+                100. * correct / len(self.test_dl.dataset)))
+
+            return correct / total
 
 
-
-    def validate_model_weights1(self, weights_to_eval, deviceId, comm_round):
-        with torch.no_grad():
-            if weights_to_eval:
-                self.net.load_state_dict(weights_to_eval, strict=True)
-
-            sum_accu = 0
-            num = 0
-            valid_loss = 0.0
-            losses = []
-            for data, label in self.test_dl:
-                data, label = data.to(self.dev), label.to(self.dev)
-                preds = self.net(data)
-                loss = self.loss_func(preds, label)  #DEV ADDED
-
-                preds = torch.argmax(preds, dim=1)
-                sum_accu += (preds == label).float().mean()
-                num += 1
-                # if weights_to_eval:
-                # print("validation Loss:", loss.item())
-                valid_loss += loss.item() * data.size(0)
-                losses.append(valid_loss / len(self.test_dl))
-                # print("NUM============", num)
-            # epoch_loss = valid_loss/
-
-            with open(f"{bench_folder}/validation.txt","a") as file:
-                file.write(f"COMM ROUND: {comm_round} | Validation done by {self.return_idx()} for worker {deviceId}  which is  {str(self.devices_dict[deviceId].is_malicious)}\n")
-                file.write(f"{losses}\n")
-            # plt.scatter(range(len(losses)), losses)
-            # print("Validation Lossess:",losses)
-            # plt.title()
-            # # plt.show()
-            # print(sum_accu / num)
-            return float(sum_accu / num), losses
+    # def validate_model_weights1(self, weights_to_eval, deviceId, comm_round):
+    #     with torch.no_grad():
+    #         if weights_to_eval:
+    #             self.net.load_state_dict(weights_to_eval, strict=True)
+    #
+    #         sum_accu = 0
+    #         num = 0
+    #         valid_loss = 0.0
+    #         losses = []
+    #         for data, label in self.test_dl:
+    #             data, label = data.to(self.dev), label.to(self.dev)
+    #             preds = self.net(data)
+    #             loss = self.loss_func(preds, label)  #DEV ADDED
+    #
+    #             preds = torch.argmax(preds, dim=1)
+    #             sum_accu += (preds == label).float().mean()
+    #             num += 1
+    #             # if weights_to_eval:
+    #             # print("validation Loss:", loss.item())
+    #             valid_loss += loss.item() * data.size(0)
+    #             losses.append(valid_loss / len(self.test_dl))
+    #             # print("NUM============", num)
+    #         # epoch_loss = valid_loss/
+    #
+    #         with open(f"{bench_folder}/validation.txt","a") as file:
+    #             file.write(f"COMM ROUND: {comm_round} | Validation done by {self.return_idx()} for worker {deviceId}  which is  {str(self.devices_dict[deviceId].is_malicious)}\n")
+    #             file.write(f"{losses}\n")
+    #         # plt.scatter(range(len(losses)), losses)
+    #         # print("Validation Lossess:",losses)
+    #         # plt.title()
+    #         # # plt.show()
+    #         # print(sum_accu / num)
+    #         return float(sum_accu / num), losses
 
 
     def global_update(self, local_update_params_potentially_to_be_used):
@@ -2110,7 +2144,7 @@ class Device:
                 worker_device_idd = transaction_to_validate["worker_device_idx"]
                 # accuracy validated by worker's update
                 # accuracy_by_worker_update_using_own_data = self.validate_model_weights(transaction_to_validate["local_updates_params"])
-                accuracy_by_worker_update_using_own_data, losses  = self.validate_model_weights1(transaction_to_validate["local_updates_params"], worker_device_idd, comm_round)
+                accuracy_by_worker_update_using_own_data = self.validate_model_weights(transaction_to_validate["local_updates_params"], worker_device_idd, comm_round)
                 #Compare accuracy with previous average accuracy  OR Compare the pattern of last 3 average accuracies
                 file_malicious.write(f"Comm Round: {comm_round}, Previous Average Accuracies:{average_accuracies}, "
                                f"Current Accuracy: {accuracy_by_worker_update_using_own_data} from {worker_device_id} "

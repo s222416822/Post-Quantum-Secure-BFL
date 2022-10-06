@@ -483,25 +483,25 @@ if __name__=="__main__":
 
         normal_avg = sum(stake_list1)/len(stake_list1)
 
-        stakefile = open(f"{bench_folder}/file1.txt", "a")
-        if comm_round % 10 == 0: #if zero reminder then,
-            # write to file.txt comm round, stake list, stakelist stake average, normalvarega
-            stakefile.write(f"COMM_ROUND: {comm_round} | Normalized: {stake_list1} | Actual: {stake_list} | Average: {stake_average} | AVG: {normal_avg}\n")
+        # stakefile = open(f"{bench_folder}/file1.txt", "a")
+        # if comm_round % 10 == 0: #if zero reminder then,
+        #     # write to file.txt comm round, stake list, stakelist stake average, normalvarega
+        #     stakefile.write(f"COMM_ROUND: {comm_round} | Normalized: {stake_list1} | Actual: {stake_list} | Average: {stake_average} | AVG: {normal_avg}\n")
 
         dict["comm_round"].append(comm_round)
         dict["stake_list"].append(stake_list)
         dict["average"].append(stake_average)
-        filedict = open(f"{bench_folder}/file2.json", "a")
-        filedict.write(str(dict))
+        # filedict = open(f"{bench_folder}/file2.json", "a")
+        # filedict.write(str(dict))
 
         dict1["comm_round"].append(comm_round)
         dict1["stake_list"].append(stake_list1)
         dict1["average"].append(normal_avg)
 
-        # if comm_round == 50:
-        filedict = open(f"{bench_folder}/file3.json" , "a")
-        if comm_round % 5 == 0:  # if zero reminder then,
-            filedict.write(str(dict1))
+        # # if comm_round == 50:
+        # filedict = open(f"{bench_folder}/file3.json" , "a")
+        # if comm_round % 5 == 0:  # if zero reminder then,
+        #     filedict.write(str(dict1))
 
         selection_list = []
         devicesss = []
@@ -567,7 +567,7 @@ if __name__=="__main__":
             p_role = 1 / 3
             p_ratio = ratio
             p_stake = stake_list1[i]
-            # p_shape = device.return_shape_value()
+            p_shape = device.return_shape_value()
             # c_power = device.return_computation_power()
             c_power = random.randint(1, 3)
 
@@ -582,8 +582,12 @@ if __name__=="__main__":
             # final_value = p_role * p_ratio * p_stake
             # final_value = (a * p_role) + (b * p_ratio) + (c * p_stake) +  (d * p_shape) + (e * c_power)
             # if not contribution_value == -1:
-            final_value = (b * p_ratio) + (c * p_stake) + (e * c_power) + contribution_value
-            # print("Selection Value Value calculated: ", final_value)
+            file_selection = open(f"{bench_folder}/selection.txt", "a")
+            final_value = (a * p_ratio) + (b * p_stake) + (c * c_power) + (d * contribution_value) + (e * p_shape)
+            print("Selection Value Value calculated: ", final_value)
+
+            file_selection.write(
+                f"Comm: {comm_round} , Device: {device.idx} - VRF: {p_ratio}, Stake: {p_stake}, Power: {c_power}, Contribution: {contribution_value}, Shape: {p_shape} \n")
 
             # ANOTHER METHOD
             # miner_selection_chance = P(M) * p_ratio * p_stake
@@ -968,14 +972,14 @@ if __name__=="__main__":
                             unverified_transactions_size = getsizeof(str(unverified_transaction))
                             transmission_delay = unverified_transactions_size/lower_link_speed
 
-                            # DEV ADDED THIS CODE
-                            with open(f"{bench_folder}/unverified_transaction_size.txt", "a") as file:
-                                file.write(
-                                    f"{comm_round}:{worker.return_idx()} - Unverified Transaction SIZE: {unverified_transactions_size}\n")
+                            # # DEV ADDED THIS CODE
+                            # with open(f"{bench_folder}/unverified_transaction_size.txt", "a") as file:
+                            #     file.write(
+                            #         f"{comm_round}:{worker.return_idx()} - Unverified Transaction SIZE: {unverified_transactions_size}\n")
                             # DEV
                             transmission_delay = unverified_transactions_size / lower_link_speed
-                            with open(f"{bench_folder}/transmission_delay", "a") as file:
-                                file.write(f"Transmission Delay:{transmission_delay}\n")
+                            # with open(f"{bench_folder}/transmission_delay", "a") as file:
+                            #     file.write(f"Transmission Delay:{transmission_delay}\n")
 
                             if validator.is_online():
                                 transaction_arrival_queue[local_update_spent_time + transmission_delay] = unverified_transaction
@@ -1097,52 +1101,27 @@ if __name__=="__main__":
                             f"Signature of transaction from worker {worker_transaction_device_idx} is verified by validator {validator.idx}!")
                         unconfirmmed_transaction['worker_signature_valid'] = True
 
-                total_losses = 0
-                total_accuracy = 0
-                average_loss = 0
-                counter = 0
 
-                lossesArray = []
-                lossOnly = []
-                workers_ids = []
-
-                #Calculate Average Validation loss of all workers
-                for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
-
-                    counter += 1
-                    worker_device_idd = unconfirmmed_transaction["worker_device_idx"]
-                    workers_ids.append(worker_device_idd)
-                    # accuracy validated by worker's update
-                    # accuracy_by_worker_update_using_own_data = self.validate_model_weights(unconfirmmed_transaction["local_updates_params"])
-                    accuracy_by_worker_update_using_own_data, losses = validator.validate_model_weights1(
-                        unconfirmmed_transaction["local_updates_params"], worker_device_idd, comm_round)
-                    all_losses.append(sum(losses)/len(losses))
-                    all_accuracies.append(accuracy_by_worker_update_using_own_data)
-                    lossesArray.append(f"{sum(losses)/len(losses)}: Worker: {worker_device_idd} by Validator: {validator.idx}") #Append to loss array to find the difference
-                    validator.devices_dict[worker_device_idd].validation_loss = sum(losses)/len(losses)
-                    validator.devices_dict[worker_device_idd].validation_accuracy = accuracy_by_worker_update_using_own_data
-                    total_losses += sum(losses)/len(losses)
-                    total_accuracy += accuracy_by_worker_update_using_own_data
-
-                average_loss = total_losses/counter
-                average_accuracy = total_accuracy/counter
 
 
                 # print("Average Loss:", total_losses/counter)
 
                 # if validator_iter == len(validators_this_round) - 1:
                 #     # Get record of loss values
-                with open(f"{bench_folder}/loss.txt", "a") as file:
-                    file.write(f"Communication Round: {comm_round} - Loss Array: {lossesArray}\n")
-                with open(f"{bench_folder}/all_losses.txt", "a") as file:
-                    file.write(f"Communication Round: {comm_round} - All Loss Array: {all_losses}\n")
-                with open(f"{bench_folder}/all_accuracies.txt", "a") as file:
-                    file.write(f"Communication Round: {comm_round} - All Accuracies: {all_accuracies}\n")
+                # with open(f"{bench_folder}/loss.txt", "a") as file:
+                #     file.write(f"Communication Round: {comm_round} - Loss Array: {lossesArray}\n")
+                # with open(f"{bench_folder}/all_losses.txt", "a") as file:
+                #     file.write(f"Communication Round: {comm_round} - All Loss Array: {all_losses}\n")
+                # with open(f"{bench_folder}/all_accuracies.txt", "a") as file:
+                #     file.write(f"Communication Round: {comm_round} - All Accuracies: {all_accuracies}\n")
 
                 #Check if loss value is too big, if yes then detectMalcious is True
-                for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
+                # for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
 
                     if unconfirmmed_transaction['worker_signature_valid']:
+                        accuracy_by_worker_update_using_own_data = validator.validate_model_weights(
+                            unconfirmmed_transaction["local_updates_params"])
+
                         worker_device_idd = unconfirmmed_transaction["worker_device_idx"]
 
                         if validator.devices_dict[worker_device_idd].return_is_malicious():
@@ -1596,31 +1575,16 @@ if __name__=="__main__":
 
         print(''' Logging Accuracies by Devices ''')
 
-        # DEV To calculate average accuracy
         average_accuracy = 0
         total_accuracy = 0
-        total_honest_online_devices = 0
-        for device in devices_list:
-            # TODO change to detected malicious here. DEV
-            if not device.is_malicious and device.is_online():
-                total_honest_online_devices += 1
-                accuracy, losses = device.validate_model_weights()
-            # DEV --------------------
-            # if device.return_is_malicious():
-                total_accuracy += accuracy
-            # if i == (len(devices_list) - 1):
-            #     average_accuracy = total_accuracy / len(devices_list)  # DEV ADDED this code
-            # -------------------------- DEV
-        # average_accuracy = total_accuracy / len(devices_list)  # DEV ADDED this code
-        average_accuracy = total_accuracy / total_honest_online_devices
-
-        average_accuracies.append(average_accuracy)
+        num_devices1 = 0
 
         for i,device in enumerate(devices_list):
-            if device.is_online():
-                accuracy_this_round, losses = device.validate_model_weights()
-            else:
-                accuracy_this_round = 0
+
+            num_devices1 += 1
+            accuracy_this_round = device.validate_model_weights()
+            total_accuracy += accuracy_this_round
+            print("Accuracy This Round:", accuracy_this_round)
 
             # #DEV for shapely value like value
             # if not device.is_malicious and device.is_online():
@@ -1701,20 +1665,30 @@ if __name__=="__main__":
         #     with open(f"{log_files_folder_path_comm_round}/accuracy_comm_{comm_round}.txt", "a") as file:
         #         file.write(f"block_mined_by: Forking happened\n")
 
+        average_accuracy = total_accuracy / num_devices1
+        print("Average Accuracy", average_accuracy)
+
         print(''' Logging Stake by Devices ''')
         for device in devices_list:
             accuracy_this_round = device.validate_model_weights()
-            with open(f"{log_files_folder_path_comm_round}/stake_comm_{comm_round}.txt", "a") as file:
+
+            shape_value = accuracy_this_round - average_accuracy
+
+            print("Shape Value", shape_value.item())
+
+            device.shape_value = shape_value.item()
+
+        with open(f"{log_files_folder_path_comm_round}/stake_comm_{comm_round}.txt", "a") as file:
                 is_malicious_node = "M" if device.return_is_malicious() else "B"
                 file.write(
                     f"{device.return_idx()} {device.return_role()} {is_malicious_node}: {device.return_stake()}\n")
-
-        file_blockchain_size = open(f"{bench_folder}/blockchain.txt", "a")
-        for device in devices_list:
-            blockchain_object = device.return_blockchain_object()
-            # print("Blockchain Object Size", sys.getsizeof(blockchain_object))
-
-            file_blockchain_size.write(str(sys.getsizeof(blockchain_object)) + "\n")
+        #
+        # file_blockchain_size = open(f"{bench_folder}/blockchain.txt", "a")
+        # for device in devices_list:
+        #     blockchain_object = device.return_blockchain_object()
+        #     # print("Blockchain Object Size", sys.getsizeof(blockchain_object))
+        #
+        #     file_blockchain_size.write(str(sys.getsizeof(blockchain_object)) + "\n")
 
         # a temporary workaround to free GPU mem by delete txs stored in the blocks. Not good when need to resync chain
         # if args['destroy_tx_in_block']:
