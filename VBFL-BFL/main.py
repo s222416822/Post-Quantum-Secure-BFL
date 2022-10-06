@@ -481,26 +481,26 @@ if __name__=="__main__":
 
         normal_avg = sum(stake_list1)/len(stake_list1)
 
-        stakefile = open(f"{bench_folder}/file1.txt", "a")
-        if comm_round % 10 == 0: #if zero reminder then,
+        # stakefile = open(f"{bench_folder}/file1.txt", "a")
+        # if comm_round % 10 == 0: #if zero reminder then,
             # write to file.txt comm round, stake list, stakelist stake average, normalvarega
-            stakefile.write(f"COMM_ROUND: {comm_round} | Normalized: {stake_list1} | Actual: {stake_list} | Average: {stake_average} | AVG: {normal_avg}\n")
+            # stakefile.write(f"COMM_ROUND: {comm_round} | Normalized: {stake_list1} | Actual: {stake_list} | Average: {stake_average} | AVG: {normal_avg}\n")
 
 
         dict["comm_round"].append(comm_round)
         dict["stake_list"].append(stake_list)
         dict["average"].append(stake_average)
-        filedict = open(f"{bench_folder}/file2.json", "a")
-        filedict.write(str(dict))
+        # filedict = open(f"{bench_folder}/file2.json", "a")
+        # filedict.write(str(dict))
 
         dict1["comm_round"].append(comm_round)
         dict1["stake_list"].append(stake_list1)
         dict1["average"].append(normal_avg)
 
         # if comm_round == 50:
-        filedict = open(f"{bench_folder}/file3.json" , "a")
-        if comm_round % 5 == 0:  # if zero reminder then,
-            filedict.write(str(dict1))
+        # filedict = open(f"{bench_folder}/file3.json" , "a")
+        # if comm_round % 5 == 0:  # if zero reminder then,
+        #     filedict.write(str(dict1))
 
         selection_list = []
         devicesss = []
@@ -566,7 +566,7 @@ if __name__=="__main__":
             p_role = 1 / 3
             p_ratio = ratio
             p_stake = stake_list1[i]
-            # p_shape = device.return_shape_value()
+            p_shape = device.return_shape_value()
             # c_power = device.return_computation_power()
             c_power = random.randint(1, 3)
 
@@ -581,8 +581,11 @@ if __name__=="__main__":
             # final_value = p_role * p_ratio * p_stake
             # final_value = (a * p_role) + (b * p_ratio) + (c * p_stake) +  (d * p_shape) + (e * c_power)
             # if not contribution_value == -1:
-            final_value = (b * p_ratio) + (c * p_stake) + (e * c_power) + contribution_value
+            file_selection = open(f"{bench_folder}/selection.txt", "a")
+            final_value = (a * p_ratio) + (b * p_stake) + (c * c_power) + (d * contribution_value) + (e * p_shape)
             print("Selection Value Value calculated: ", final_value)
+
+            file_selection.write(f"Comm: {comm_round} , Device: {device.idx} - VRF: {p_ratio}, Stake: {p_stake}, Power: {c_power}, Contribution: {contribution_value}, Shape: {p_shape} \n")
 
             # ANOTHER METHOD
             # miner_selection_chance = P(M) * p_ratio * p_stake
@@ -615,7 +618,7 @@ if __name__=="__main__":
         w_ratio = int((5 / sum_of_ratio) * total_devices)
         v_ratio = int((2 / sum_of_ratio) * total_devices)
         m_ratio = int((1 / sum_of_ratio) * total_devices)
-        print(w_ratio, v_ratio, m_ratio)
+        print("Ratio", w_ratio, v_ratio, m_ratio)
 
 
         file_record = open(f"{bench_folder}/roleplot.txt", "a")
@@ -969,14 +972,14 @@ if __name__=="__main__":
                             unverified_transactions_size = getsizeof(str(unverified_transaction))
                             transmission_delay = unverified_transactions_size/lower_link_speed
 
-                            # DEV ADDED THIS CODE
-                            with open(f"{bench_folder}/unverified_transaction_size.txt", "a") as file:
-                                file.write(
-                                    f"{comm_round}:{worker.return_idx()} - Unverified Transaction SIZE: {unverified_transactions_size}\n")
-                            # DEV
-                            transmission_delay = unverified_transactions_size / lower_link_speed
-                            with open(f"{bench_folder}/transmission_delay", "a") as file:
-                                file.write(f"Transmission Delay:{transmission_delay}\n")
+                            # # DEV ADDED THIS CODE
+                            # with open(f"{bench_folder}/unverified_transaction_size.txt", "a") as file:
+                            #     file.write(
+                            #         f"{comm_round}:{worker.return_idx()} - Unverified Transaction SIZE: {unverified_transactions_size}\n")
+                            # # DEV
+                            # transmission_delay = unverified_transactions_size / lower_link_speed
+                            # with open(f"{bench_folder}/transmission_delay", "a") as file:
+                            #     file.write(f"Transmission Delay:{transmission_delay}\n")
 
                             if validator.is_online():
                                 transaction_arrival_queue[local_update_spent_time + transmission_delay] = unverified_transaction
@@ -999,33 +1002,30 @@ if __name__=="__main__":
 
 
         print(''' Step 2.5 - with the broadcasted workers transactions, validators decide the final transaction arrival order \n''')
-        # for validator_iter in range(len(validators_this_round)):
-        #     validator = validators_this_round[validator_iter]
-        #     accepted_broadcasted_validator_transactions = validator.return_accepted_broadcasted_worker_transactions()
-        #     print(f"{validator.return_idx()} - validator {validator_iter+1}/{len(validators_this_round)} is calculating the final transactions arrival order by combining the direct worker transactions received and received broadcasted transactions...")
-        #     accepted_broadcasted_transactions_arrival_queue = {}
-        #     if accepted_broadcasted_validator_transactions:
-        #         # calculate broadcasted transactions arrival time
-        #         self_validator_link_speed = validator.return_link_speed()
-        #         for broadcasting_validator_record in accepted_broadcasted_validator_transactions:
-        #             broadcasting_validator_link_speed = broadcasting_validator_record['source_validator_link_speed']
-        #             lower_link_speed = self_validator_link_speed if self_validator_link_speed < broadcasting_validator_link_speed else broadcasting_validator_link_speed
-        #             for arrival_time_at_broadcasting_validator, broadcasted_transaction in broadcasting_validator_record['broadcasted_transactions'].items():
-        #                 transmission_delay = getsizeof(str(broadcasted_transaction))/lower_link_speed
-        #                 accepted_broadcasted_transactions_arrival_queue[transmission_delay + arrival_time_at_broadcasting_validator] = broadcasted_transaction
-        #     else:
-        #         print(f"validator {validator.return_idx()} {validator_iter+1}/{len(validators_this_round)} did not receive any broadcasted worker transaction this round.")
-        #     # mix the boardcasted transactions with the direct accepted transactions
-        #     final_transactions_arrival_queue = sorted({**validator.return_unordered_arrival_time_accepted_worker_transactions(), **accepted_broadcasted_transactions_arrival_queue}.items())
-        #     validator.set_transaction_for_final_validating_queue(final_transactions_arrival_queue)
-        #     print(f"{validator.return_idx()} - validator {validator_iter+1}/{len(validators_this_round)} done calculating the ordered final transactions arrival order. Total {len(final_transactions_arrival_queue)} accepted transactions.")
+        for validator_iter in range(len(validators_this_round)):
+            validator = validators_this_round[validator_iter]
+            accepted_broadcasted_validator_transactions = validator.return_accepted_broadcasted_worker_transactions()
+            print(f"{validator.return_idx()} - validator {validator_iter+1}/{len(validators_this_round)} is calculating the final transactions arrival order by combining the direct worker transactions received and received broadcasted transactions...")
+            accepted_broadcasted_transactions_arrival_queue = {}
+            if accepted_broadcasted_validator_transactions:
+                # calculate broadcasted transactions arrival time
+                self_validator_link_speed = validator.return_link_speed()
+                for broadcasting_validator_record in accepted_broadcasted_validator_transactions:
+                    broadcasting_validator_link_speed = broadcasting_validator_record['source_validator_link_speed']
+                    lower_link_speed = self_validator_link_speed if self_validator_link_speed < broadcasting_validator_link_speed else broadcasting_validator_link_speed
+                    for arrival_time_at_broadcasting_validator, broadcasted_transaction in broadcasting_validator_record['broadcasted_transactions'].items():
+                        transmission_delay = getsizeof(str(broadcasted_transaction))/lower_link_speed
+                        accepted_broadcasted_transactions_arrival_queue[transmission_delay + arrival_time_at_broadcasting_validator] = broadcasted_transaction
+            else:
+                print(f"validator {validator.return_idx()} {validator_iter+1}/{len(validators_this_round)} did not receive any broadcasted worker transaction this round.")
+            # mix the boardcasted transactions with the direct accepted transactions
+            final_transactions_arrival_queue = sorted({**validator.return_unordered_arrival_time_accepted_worker_transactions(), **accepted_broadcasted_transactions_arrival_queue}.items())
+            validator.set_transaction_for_final_validating_queue(final_transactions_arrival_queue)
+            print(f"{validator.return_idx()} - validator {validator_iter+1}/{len(validators_this_round)} done calculating the ordered final transactions arrival order. Total {len(final_transactions_arrival_queue)} accepted transactions.")
 
 
         print(''' Step 3 - validators do self and cross-validation(validate local updates from workers) by the order of transaction arrival time.\n''')
-        # all_losses = []
-        all_accuracies = []
         for validator_iter in range(len(validators_this_round)):
-
             validator = validators_this_round[validator_iter]
             final_transactions_arrival_queue = validator.return_final_transactions_validating_queue()
             if final_transactions_arrival_queue:
@@ -1041,6 +1041,7 @@ if __name__=="__main__":
                     if worker_transaction_device_idx in validator.black_list:
                         print(f"{worker_transaction_device_idx} is in validator's blacklist. Trasaction won't get validated.")
 
+                    validation_time = time.time()
                     # transaction_to_validate = unconfirmmed_transaction
                     if validator.check_signature:
                         transaction_before_signed = copy.deepcopy(unconfirmmed_transaction)
@@ -1071,29 +1072,15 @@ if __name__=="__main__":
                             f"Signature of transaction from worker {worker_transaction_device_idx} is verified by validator {validator.idx}!")
                         unconfirmmed_transaction['worker_signature_valid'] = True
 
-                # total_losses = 0
-                # total_accuracy = 0
-                # average_loss = 0
-                # counter = 0
 
-                # lossesArray = []
-                # lossOnly = []
-                # workers_ids = []
-
-                #Calculate Average Validation loss of all workers
-                # for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
-
-                    # counter += 1
-                    # worker_device_idd = unconfirmmed_transaction["worker_device_idx"]
-                    # workers_ids.append(worker_device_idd)
-                    # accuracy validated by worker's update
-                    # accuracy_by_worker_update_using_own_data = validator.validate_model_weights(unconfirmmed_transaction["local_updates_params"])
-
-
-                #Check if loss value is too big, if yes then detectMalcious is True
-                for (arrival_time, unconfirmmed_transaction) in final_transactions_arrival_queue:
 
                     if unconfirmmed_transaction['worker_signature_valid']:
+                        accuracy_by_worker_update_using_own_data = validator.validate_model_weights(
+                            unconfirmmed_transaction["local_updates_params"])
+                        print(f'validator updated model accuracy - {validator.validator_local_accuracy}')
+                        print(
+                            f"After applying worker's update, model accuracy becomes - {accuracy_by_worker_update_using_own_data}")
+
                         worker_device_idd = unconfirmmed_transaction["worker_device_idx"]
 
                         if validator.devices_dict[worker_device_idd].return_is_malicious():
@@ -1104,10 +1091,6 @@ if __name__=="__main__":
                             unconfirmmed_transaction['update_direction'] = True
                             print(
                                 f"worker {worker_transaction_device_idx}'s' updates is deemed as GOOD by validator {validator.idx}")
-                        # if validator.is_malicious:
-                        #     old_voting = unconfirmmed_transaction['update_direction']
-                        #     unconfirmmed_transaction['update_direction'] = not unconfirmmed_transaction[
-                        #         'update_direction']
                         unconfirmmed_transaction['validation_rewards'] = 2 * rewards
                     else:
                         unconfirmmed_transaction['update_direction'] = 'N/A'
@@ -1122,9 +1105,8 @@ if __name__=="__main__":
                     # unconfirmmed_transaction['validator_rsa_pub_key'] = self.return_rsa_pub_key()
 
                     unconfirmmed_transaction["validator_signature"] = validator.sign_msg_xmss(sorted(unconfirmmed_transaction.items()))
-                    # post_validation_unconfirmmed_transaction = copy.deepcopy(unconfirmmed_transaction)
-                    # print(post_validation_unconfirmmed_transaction)
-                    # if validation_time:
+                    validation_time = validation_time = (time.time() - validation_time)/validator.computation_power
+
                     if validation_time:
                         validator.add_post_validation_transaction_to_queue((arrival_time + validation_time,
                                                                             validator.return_link_speed(),
@@ -1271,9 +1253,9 @@ if __name__=="__main__":
                 # put transactions into candidate block and begin mining
                 # block index starts from 1
                 start_time_point = time.time()
-                print("Start Time Point ,,,,,,,,,,,,", start_time_point)
-                with open(f"{bench_folder}/block_gen_1.txt", "a") as file:
-                    file.write(f"Start Time Point: {start_time_point}\n")
+                # print("Start Time Point ,,,,,,,,,,,,", start_time_point)
+                # with open(f"{bench_folder}/block_gen_1.txt", "a") as file:
+                #     file.write(f"Start Time Point: {start_time_point}\n")
                 candidate_block = Block(idx=miner.return_blockchain_object().return_chain_length() + 1,
                                         transactions=transactions_to_record_in_block,                                        # miner_rsa_pub_key=miner.return_rsa_pub_key()
                                         miner_xmss_pub_key=miner.return_xmss_pub_key(),
@@ -1281,8 +1263,8 @@ if __name__=="__main__":
                                         )
 
                 #DEV
-                with open(f"{bench_folder}/candidate_blocksize.txt","a") as cb:
-                    cb.write(f"COMM_ROUND: {comm_round} - Candidate Block Size:{str(sys.getsizeof(candidate_block))}\n")
+                # with open(f"{bench_folder}/candidate_blocksize.txt","a") as cb:
+                #     cb.write(f"COMM_ROUND: {comm_round} - Candidate Block Size:{str(sys.getsizeof(candidate_block))}\n")
 
                 # mine the block
                 miner_computation_power = miner.return_computation_power()
@@ -1308,8 +1290,8 @@ if __name__=="__main__":
 
 
                     #DEV added
-                    with open(f"{bench_folder}/mined_blocksize.txt", "a") as cb:
-                        cb.write(f"COMM_ROUND: {comm_round} - Mined Block Size:{str(sys.getsizeof(mined_block))}")
+                    # with open(f"{bench_folder}/mined_blocksize.txt", "a") as cb:
+                    #     cb.write(f"COMM_ROUND: {comm_round} - Mined Block Size:{str(sys.getsizeof(mined_block))}")
 
 
                 else:
@@ -1328,8 +1310,8 @@ if __name__=="__main__":
                     print("block_generation_time_spent", block_generation_time_spent)
 
                                                   # /miner_computation_power
-                    with open(f"{bench_folder}/block_gen_1.txt","a") as file:
-                        file.write(f"State Time Point: {start_time_point}, Block Generation Time Spent {block_generation_time_spent}\n")
+                    # with open(f"{bench_folder}/block_gen_1.txt","a") as file:
+                    #     file.write(f"State Time Point: {start_time_point}, Block Generation Time Spent {block_generation_time_spent}\n")
                     miner.set_block_generation_time_point(begin_mining_time + block_generation_time_spent)
                     print(f"{miner.return_idx()} - miner mines a block in {block_generation_time_spent} seconds.")
                     # immediately propagate the block
@@ -1347,13 +1329,6 @@ if __name__=="__main__":
         #*********************
         comm_round_block_gen_time = [] #BLOCK GENERATION TIM START
         print("comm_round_block_gen_time 1", comm_round_block_gen_time)
-
-        # devices_list = miners_this_round
-        # devices_list.sort(key=lambda device: device.return_stake())
-
-        # list_stakes = []
-        # for m in miners_this_round:
-        #     list_stakes.append(m.return_stake())
 
         # DEV for selecting the VRF comparison to previous and recent VRF
         miner = miners_this_round[0] #DEV Any miner can retrieve the blockchain data!
@@ -1501,8 +1476,8 @@ if __name__=="__main__":
                 comm_round_block_gen_time.append(block_generation_time_point)
                 print("comm_round_block_gen_time 2 After Appending", comm_round_block_gen_time)
 
-                with open(f"{bench_folder}/block_gen_time.txt","a") as file:
-                    file.write(f"COMM ROUND: {comm_round} , {device.idx} - Block Gen Time Point: {block_generation_time_point} : COMM Block Gen Time: {comm_round_block_gen_time}\n")
+                # with open(f"{bench_folder}/block_gen_time.txt","a") as file:
+                #     file.write(f"COMM ROUND: {comm_round} , {device.idx} - Block Gen Time Point: {block_generation_time_point} : COMM Block Gen Time: {comm_round_block_gen_time}\n")
         if len(added_blocks_miner_set) > 1:
             print("WARNING: a forking event just happened!")
             forking_happened = True
@@ -1524,11 +1499,15 @@ if __name__=="__main__":
 
         print(''' Logging Accuracies by Devices ''')
 
-        for i,device in enumerate(devices_list):
-            if device.is_online():
-                accuracy_this_round = device.validate_model_weights()
-            else:
-                accuracy_this_round = 0
+        average_accuracy = 0
+        total_accuracy = 0
+        num_devices1 = 0
+
+        for device in devices_list:
+            num_devices1 += 1
+            accuracy_this_round = device.validate_model_weights()
+            total_accuracy += accuracy_this_round
+            print("Accuracy This Round:", accuracy_this_round)
 
             # #DEV for shapely value like value
             # if not device.is_malicious and device.is_online():
@@ -1556,6 +1535,8 @@ if __name__=="__main__":
                 # if i == (len(devices_list) - 1):
                 #     file.write(f"average_Accuracy: {average_accuracy}\n")
 
+        average_accuracy = total_accuracy / num_devices1
+        print("Average Accuracy", average_accuracy)
         # logging time, mining_consensus and forking
         # get the slowest device end time
         comm_round_spent_time = time.time() - comm_round_start_time
@@ -1575,8 +1556,8 @@ if __name__=="__main__":
                 #     # TODO this may be caused by "no transaction to mine" for the miner. Forgot to check for block miner's maliciousness in request_to_downlaod()
                 #     file2.write(f"No valid block in round {comm_round}\n")
             try:
-                slowest_round_ends_time = max(all_devices_round_ends_time)  #DEV for simulation
-                # slowest_round_ends_time = 0
+                # slowest_round_ends_time = max(all_devices_round_ends_time)  #DEV for simulation
+                slowest_round_ends_time = 0
                 file.write(f"slowest_device_round_ends_time: {slowest_round_ends_time}\n")
             except:
                 # corner case when all transactions are rejected by miners
@@ -1611,17 +1592,25 @@ if __name__=="__main__":
 
         print(''' Logging Stake by Devices ''')
         for device in devices_list:
+            accuracy_this_round = device.validate_model_weights()
+            shape_value = accuracy_this_round - average_accuracy
+
+            print("Shape Value", shape_value.item())
+
+            device.shape_value = shape_value.item()
+
+
             with open(f"{log_files_folder_path_comm_round}/stake_comm_{comm_round}.txt", "a") as file:
                 is_malicious_node = "M" if device.return_is_malicious() else "B"
                 file.write(
                     f"{device.return_idx()} {device.return_role()} {is_malicious_node}: {device.return_stake()}\n")
-
-        file_blockchain_size = open(f"{bench_folder}/blockchain.txt", "a")
-        for device in devices_list:
-            blockchain_object = device.return_blockchain_object()
-            print("Blockchain Object Size", sys.getsizeof(blockchain_object))
-
-            file_blockchain_size.write(str(sys.getsizeof(blockchain_object)) + "\n")
+        #
+        # file_blockchain_size = open(f"{bench_folder}/blockchain.txt", "a")
+        # for device in devices_list:
+        #     blockchain_object = device.return_blockchain_object()
+        #     print("Blockchain Object Size", sys.getsizeof(blockchain_object))
+        #
+        #     file_blockchain_size.write(str(sys.getsizeof(blockchain_object)) + "\n")
 
         # a temporary workaround to free GPU mem by delete txs stored in the blocks. Not good when need to resync chain
         # if args['destroy_tx_in_block']:
