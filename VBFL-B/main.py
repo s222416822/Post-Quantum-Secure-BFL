@@ -1614,7 +1614,7 @@ if __name__=="__main__":
         # average_accuracies.append(average_accuracy)
 
         for device in devices_list:
-            num_devices1 += 1
+            # num_devices1 += 1
             accuracy_this_round = device.validate_model_weights()
             total_accuracy += accuracy_this_round
             print("Accuracy This Round:", accuracy_this_round)
