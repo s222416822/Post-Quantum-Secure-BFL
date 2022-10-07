@@ -1463,7 +1463,6 @@ if __name__=="__main__":
             # else:
             #     print(f"{miner.return_idx()} - miner {miner_iter+1}/{len(miners_this_round)} does not receive a propagated block and has not mined its own block yet.")
 
-
         # CHECK FOR FORKING
         added_blocks_miner_set = set()
         for device in devices_list:

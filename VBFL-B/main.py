@@ -394,6 +394,8 @@ if __name__=="__main__":
 
     # VBFL starts here
     for comm_round in range(latest_round_num + 1, args['max_num_comm']+1):
+        comm_round_time = time.time()
+
         # create round specific log folder
         log_files_folder_path_comm_round = f"{log_files_folder_path}/comm_{comm_round}"
         if os.path.exists(log_files_folder_path_comm_round):
@@ -483,26 +485,26 @@ if __name__=="__main__":
 
         normal_avg = sum(stake_list1)/len(stake_list1)
 
-        stakefile = open(f"{bench_folder}/file1.txt", "a")
-        if comm_round % 10 == 0: #if zero reminder then,
+        # stakefile = open(f"{bench_folder}/file1.txt", "a")
+        # if comm_round % 10 == 0: #if zero reminder then,
             # write to file.txt comm round, stake list, stakelist stake average, normalvarega
-            stakefile.write(f"COMM_ROUND: {comm_round} | Normalized: {stake_list1} | Actual: {stake_list} | Average: {stake_average} | AVG: {normal_avg}\n")
+            # stakefile.write(f"COMM_ROUND: {comm_round} | Normalized: {stake_list1} | Actual: {stake_list} | Average: {stake_average} | AVG: {normal_avg}\n")
 
 
         dict["comm_round"].append(comm_round)
         dict["stake_list"].append(stake_list)
         dict["average"].append(stake_average)
-        filedict = open(f"{bench_folder}/file2.json", "a")
-        filedict.write(str(dict))
+        # filedict = open(f"{bench_folder}/file2.json", "a")
+        # filedict.write(str(dict))
 
         dict1["comm_round"].append(comm_round)
         dict1["stake_list"].append(stake_list1)
         dict1["average"].append(normal_avg)
 
         # if comm_round == 50:
-        filedict = open(f"{bench_folder}/file3.json" , "a")
-        if comm_round % 5 == 0:  # if zero reminder then,
-            filedict.write(str(dict1))
+        # filedict = open(f"{bench_folder}/file3.json" , "a")
+        # if comm_round % 5 == 0:  # if zero reminder then,
+        #     filedict.write(str(dict1))
 
         selection_list = []
         devicesss = []
@@ -568,7 +570,7 @@ if __name__=="__main__":
             p_role = 1 / 3
             p_ratio = ratio
             p_stake = stake_list1[i]
-            # p_shape = device.return_shape_value()
+            p_shape = device.return_shape_value()
             # c_power = device.return_computation_power()
             c_power = random.randint(1, 3)
 
@@ -583,8 +585,11 @@ if __name__=="__main__":
             # final_value = p_role * p_ratio * p_stake
             # final_value = (a * p_role) + (b * p_ratio) + (c * p_stake) +  (d * p_shape) + (e * c_power)
             # if not contribution_value == -1:
-            final_value = (b * p_ratio) + (c * p_stake) + (e * c_power) + contribution_value
+            file_selection = open(f"{bench_folder}/selection.txt", "a")
+            final_value = (a * p_ratio) + (b * p_stake) + (c * c_power) + (d * contribution_value) + (e * p_shape)
             print("Selection Value Value calculated: ", final_value)
+
+            file_selection.write(f"Comm: {comm_round} , Device: {device.idx} - VRF: {p_ratio}, Stake: {p_stake}, Power: {c_power}, Contribution: {contribution_value}, Shape: {p_shape} \n")
 
             # ANOTHER METHOD
             # miner_selection_chance = P(M) * p_ratio * p_stake
@@ -912,12 +917,8 @@ if __name__=="__main__":
                             # simulate the situation that worker may go offline during model updates transmission to the validator, based on per transaction
                             # if worker.online_switcher():
                             if worker.is_online():
-                                # local_update_spent_time = worker.worker_local_update(rewards, log_files_folder_path_comm_round, comm_round)
-                                local_update_spent_time = 0
-                                # unverified_transaction = worker.return_local_updates_and_signature(comm_round)
-                                unverified_transaction = None
-
-
+                                local_update_spent_time = worker.worker_local_update(rewards, log_files_folder_path_comm_round, comm_round)
+                                unverified_transaction = worker.return_local_updates_and_signature(comm_round)
                                 # size in bytes, usually around 35000 bytes per transaction
                                 unverified_transactions_size = getsizeof(str(unverified_transaction))
 
@@ -975,14 +976,14 @@ if __name__=="__main__":
                             unverified_transactions_size = getsizeof(str(unverified_transaction))
                             transmission_delay = unverified_transactions_size/lower_link_speed
 
-                            # DEV ADDED THIS CODE
-                            with open(f"{bench_folder}/unverified_transaction_size.txt", "a") as file:
-                                file.write(
-                                    f"{comm_round}:{worker.return_idx()} - Unverified Transaction SIZE: {unverified_transactions_size}\n")
-                            # DEV
-                            transmission_delay = unverified_transactions_size / lower_link_speed
-                            with open(f"{bench_folder}/transmission_delay", "a") as file:
-                                file.write(f"Transmission Delay:{transmission_delay}\n")
+                            # # DEV ADDED THIS CODE
+                            # with open(f"{bench_folder}/unverified_transaction_size.txt", "a") as file:
+                            #     file.write(
+                            #         f"{comm_round}:{worker.return_idx()} - Unverified Transaction SIZE: {unverified_transactions_size}\n")
+                            # # DEV
+                            # transmission_delay = unverified_transactions_size / lower_link_speed
+                            # with open(f"{bench_folder}/transmission_delay", "a") as file:
+                            #     file.write(f"Transmission Delay:{transmission_delay}\n")
 
                             if validator.is_online():
                                 transaction_arrival_queue[local_update_spent_time + transmission_delay] = unverified_transaction
@@ -1337,9 +1338,9 @@ if __name__=="__main__":
                 # put transactions into candidate block and begin mining
                 # block index starts from 1
                 start_time_point = time.time()
-                print("Start Time Point ,,,,,,,,,,,,", start_time_point)
-                with open(f"{bench_folder}/block_gen_1.txt", "a") as file:
-                    file.write(f"Start Time Point: {start_time_point}\n")
+                # print("Start Time Point ,,,,,,,,,,,,", start_time_point)
+                # with open(f"{bench_folder}/block_gen_1.txt", "a") as file:
+                #     file.write(f"Start Time Point: {start_time_point}\n")
                 candidate_block = Block(idx=miner.return_blockchain_object().return_chain_length() + 1,
                                         transactions=transactions_to_record_in_block,                                        # miner_rsa_pub_key=miner.return_rsa_pub_key()
                                         miner_xmss_pub_key=miner.return_xmss_pub_key(),
@@ -1347,8 +1348,8 @@ if __name__=="__main__":
                                         )
 
                 #DEV
-                with open(f"{bench_folder}/candidate_blocksize.txt","a") as cb:
-                    cb.write(f"COMM_ROUND: {comm_round} - Candidate Block Size:{str(sys.getsizeof(candidate_block))}\n")
+                # with open(f"{bench_folder}/candidate_blocksize.txt","a") as cb:
+                #     cb.write(f"COMM_ROUND: {comm_round} - Candidate Block Size:{str(sys.getsizeof(candidate_block))}\n")
 
                 # mine the block
                 miner_computation_power = miner.return_computation_power()
@@ -1374,8 +1375,8 @@ if __name__=="__main__":
 
 
                     #DEV added
-                    with open(f"{bench_folder}/mined_blocksize.txt", "a") as cb:
-                        cb.write(f"COMM_ROUND: {comm_round} - Mined Block Size:{str(sys.getsizeof(mined_block))}")
+                    # with open(f"{bench_folder}/mined_blocksize.txt", "a") as cb:
+                    #     cb.write(f"COMM_ROUND: {comm_round} - Mined Block Size:{str(sys.getsizeof(mined_block))}")
 
 
                 else:
@@ -1394,8 +1395,8 @@ if __name__=="__main__":
                     print("block_generation_time_spent", block_generation_time_spent)
 
                                                   # /miner_computation_power
-                    with open(f"{bench_folder}/block_gen_1.txt","a") as file:
-                        file.write(f"State Time Point: {start_time_point}, Block Generation Time Spent {block_generation_time_spent}\n")
+                    # with open(f"{bench_folder}/block_gen_1.txt","a") as file:
+                    #     file.write(f"State Time Point: {start_time_point}, Block Generation Time Spent {block_generation_time_spent}\n")
                     miner.set_block_generation_time_point(begin_mining_time + block_generation_time_spent)
                     print(f"{miner.return_idx()} - miner mines a block in {block_generation_time_spent} seconds.")
                     # immediately propagate the block
@@ -1567,13 +1568,13 @@ if __name__=="__main__":
                 comm_round_block_gen_time.append(block_generation_time_point)
                 print("comm_round_block_gen_time 2 After Appending", comm_round_block_gen_time)
 
-                with open(f"{bench_folder}/block_gen_time.txt","a") as file:
-                    file.write(f"COMM ROUND: {comm_round} , {device.idx} - Block Gen Time Point: {block_generation_time_point} : COMM Block Gen Time: {comm_round_block_gen_time}\n")
+                # with open(f"{bench_folder}/block_gen_time.txt","a") as file:
+                #     file.write(f"COMM ROUND: {comm_round} , {device.idx} - Block Gen Time Point: {block_generation_time_point} : COMM Block Gen Time: {comm_round_block_gen_time}\n")
         if len(added_blocks_miner_set) > 1:
             print("WARNING: a forking event just happened!")
             forking_happened = True
-            with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file:
-                file.write(f"Forking in round {comm_round}\n")
+            # with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file:
+            #     file.write(f"Forking in round {comm_round}\n")
         else:
             print("No forking event happened.")
 
@@ -1612,11 +1613,11 @@ if __name__=="__main__":
         #
         # average_accuracies.append(average_accuracy)
 
-        for i,device in enumerate(devices_list):
-            if device.is_online():
-                accuracy_this_round, losses = device.validate_model_weights()
-            else:
-                accuracy_this_round = 0
+        for device in devices_list:
+            num_devices1 += 1
+            accuracy_this_round = device.validate_model_weights()
+            total_accuracy += accuracy_this_round
+            print("Accuracy This Round:", accuracy_this_round)
 
             # #DEV for shapely value like value
             # if not device.is_malicious and device.is_online():
@@ -1650,7 +1651,8 @@ if __name__=="__main__":
         with open(f"{log_files_folder_path_comm_round}/accuracy_comm_{comm_round}.txt", "a") as file:
             # corner case when all miners in this round are malicious devices so their blocks are rejected
             try:
-                comm_round_block_gen_time = max(comm_round_block_gen_time)
+                # comm_round_block_gen_time = max(comm_round_block_gen_time)
+                comm_round_block_gen_time = 0
                 print("comm_round_block_gen_time 3 Max", comm_round_block_gen_time)
                 file.write(f"comm_round_block_gen_time: {comm_round_block_gen_time}\n")
             except:
@@ -1659,12 +1661,12 @@ if __name__=="__main__":
                 no_block_msg = "No valid block has been generated this round."
                 print(no_block_msg)
                 file.write(f"comm_round_block_gen_time: {no_block_msg}\n")
-                with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file2:
-                    # TODO this may be caused by "no transaction to mine" for the miner. Forgot to check for block miner's maliciousness in request_to_downlaod()
-                    file2.write(f"No valid block in round {comm_round}\n")
+                # with open(f"{log_files_folder_path}/forking_and_no_valid_block_log.txt", 'a') as file2:
+                #     # TODO this may be caused by "no transaction to mine" for the miner. Forgot to check for block miner's maliciousness in request_to_downlaod()
+                #     file2.write(f"No valid block in round {comm_round}\n")
             try:
-                slowest_round_ends_time = max(all_devices_round_ends_time)  #DEV for simulation
-                # slowest_round_ends_time = 0
+                # slowest_round_ends_time = max(all_devices_round_ends_time)  #DEV for simulation
+                slowest_round_ends_time = 0
                 file.write(f"slowest_device_round_ends_time: {slowest_round_ends_time}\n")
             except:
                 # corner case when all transactions are rejected by miners
@@ -1700,17 +1702,24 @@ if __name__=="__main__":
         print(''' Logging Stake by Devices ''')
         for device in devices_list:
             accuracy_this_round = device.validate_model_weights()
+            shape_value = accuracy_this_round - average_accuracy
+
+            print("Shape Value", shape_value.item())
+
+            device.shape_value = shape_value.item()
+
+
             with open(f"{log_files_folder_path_comm_round}/stake_comm_{comm_round}.txt", "a") as file:
                 is_malicious_node = "M" if device.return_is_malicious() else "B"
                 file.write(
                     f"{device.return_idx()} {device.return_role()} {is_malicious_node}: {device.return_stake()}\n")
-
-        file_blockchain_size = open(f"{bench_folder}/blockchain.txt", "a")
-        for device in devices_list:
-            blockchain_object = device.return_blockchain_object()
-            print("Blockchain Object Size", sys.getsizeof(blockchain_object))
-
-            file_blockchain_size.write(str(sys.getsizeof(blockchain_object)) + "\n")
+        #
+        # file_blockchain_size = open(f"{bench_folder}/blockchain.txt", "a")
+        # for device in devices_list:
+        #     blockchain_object = device.return_blockchain_object()
+        #     print("Blockchain Object Size", sys.getsizeof(blockchain_object))
+        #
+        #     file_blockchain_size.write(str(sys.getsizeof(blockchain_object)) + "\n")
 
         # a temporary workaround to free GPU mem by delete txs stored in the blocks. Not good when need to resync chain
         # if args['destroy_tx_in_block']:
@@ -1720,6 +1729,10 @@ if __name__=="__main__":
         # 			last_block.free_tx()
 
         # save network_snapshot if reaches save frequency
+
+        comm_round_time = time.time() - comm_round_time
+        with open("comm_round_time.txt", "a") as f:
+            f.write(f"Comm: {comm_round} - Time: {comm_round_time}\n")
         if args['save_network_snapshots'] and (comm_round == 1 or comm_round % args['save_freq'] == 0):
             if args['save_most_recent']:
                 paths = sorted(Path(network_snapshot_save_path).iterdir(), key=os.path.getmtime)
