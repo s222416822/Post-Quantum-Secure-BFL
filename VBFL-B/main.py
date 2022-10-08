@@ -1616,7 +1616,7 @@ if __name__=="__main__":
         for device in devices_list:
             # num_devices1 += 1
             accuracy_this_round = device.validate_model_weights()
-            total_accuracy += accuracy_this_round
+            # total_accuracy += accuracy_this_round
             print("Accuracy This Round:", accuracy_this_round)
 
             # #DEV for shapely value like value
@@ -1701,12 +1701,12 @@ if __name__=="__main__":
 
         print(''' Logging Stake by Devices ''')
         for device in devices_list:
-            accuracy_this_round = device.validate_model_weights()
-            shape_value = accuracy_this_round - average_accuracy
+            # accuracy_this_round = device.validate_model_weights()
+            # shape_value = accuracy_this_round - 0
 
-            print("Shape Value", shape_value.item())
+            # print("Shape Value", shape_value.item())
 
-            device.shape_value = shape_value.item()
+            device.shape_value = 0
 
 
             with open(f"{log_files_folder_path_comm_round}/stake_comm_{comm_round}.txt", "a") as file:

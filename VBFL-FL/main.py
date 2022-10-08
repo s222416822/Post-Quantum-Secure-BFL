@@ -394,6 +394,9 @@ if __name__=="__main__":
 
     # VBFL starts here
     for comm_round in range(latest_round_num + 1, args['max_num_comm']+1):
+
+        comm_round_time = time.time()
+
         # create round specific log folder
         log_files_folder_path_comm_round = f"{log_files_folder_path}/comm_{comm_round}"
         if os.path.exists(log_files_folder_path_comm_round):
@@ -1696,6 +1699,10 @@ if __name__=="__main__":
         # 		last_block = device.return_blockchain_object().return_last_block()
         # 		if last_block:
         # 			last_block.free_tx()
+
+         comm_round_time = time.time() - comm_round_time
+        with open("comm_round_time.txt", "a") as f:
+            f.write(f"Comm: {comm_round} - Time: {comm_round_time}\n")
 
         # save network_snapshot if reaches save frequency
         if args['save_network_snapshots'] and (comm_round == 1 or comm_round % args['save_freq'] == 0):
