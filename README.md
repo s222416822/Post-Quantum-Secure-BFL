@@ -4,6 +4,9 @@ This repository contains the code used for the paper
 titled **"Performance Analysis and Evaluation of Post Quantum Secure Blockchained 
 Federated Learning"**. 
 
+
+![preview.png](images/preview.png)
+
 ## Abstract
 As the field of quantum computing progresses, traditional cryptographic 
 algorithms such as RSA and ECDSA are becoming increasingly vulnerable to quantum-based 
