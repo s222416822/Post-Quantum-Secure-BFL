@@ -8,12 +8,12 @@ import hashlib
 import sys
 import secrets
 
-
 import winternitz.signatures as ws
 
 if sys.version_info[0] != 3 or sys.version_info[1] < 7:
     print("Requires Python v3.7+")
     sys.exit()
+
 
 # Public API
 
@@ -25,6 +25,7 @@ def _get_secret_scalar(sk):
     h[0] = int(h[0] & 0xf8)
     secret_int = int.from_bytes(h, 'little')
     return secret_int
+
 
 def get_public_key(sk):
     """Calculate and return the public_key as an encoded point string (bytes)
@@ -38,11 +39,7 @@ def get_public_key(sk):
 
 
 # Section 5.1. ECVRF Proving
-def ecvrf_prove(sk, alpha_string):
-
-
-
-
+def ecvrf_prove(sk, alpha_string, wotsplus):
     """
     Input:
         sk - VRF private key (32 bytes)
@@ -86,11 +83,10 @@ def ecvrf_prove(sk, alpha_string):
         _assert_and_sample(['secret_scalar_x', 'public_key_y', 'h', 'gamma', 'k_b', 'k_h', 'pi_string'],
                            [secret_scalar_x.to_bytes(32, 'little'), public_key_y, h, _encode_point(gamma),
                             _encode_point(k_b), _encode_point(k_h), pi_string])
-
-
+    signature = wotsplus.sign(pi_string)
 
     # 9. Output pi_string
-    return "VALID", pi_string
+    return "VALID", pi_string, signature
 
 
 # Section 5.2. ECVRF Proof To Hash
@@ -128,7 +124,6 @@ def ecvrf_proof_to_hash(pi_string):
 
 # Section 5.3. ECVRF Verifying
 def ecvrf_verify(y, pi_string, alpha_string):
-
     """
     Input:
         y - public key, an EC point as bytes
@@ -149,7 +144,6 @@ def ecvrf_verify(y, pi_string, alpha_string):
     # 2. If D is "INVALID", output "INVALID" and stop
     if d == "INVALID":
         return "INVALID", []
-
 
     # 3. (Gamma, c, s) = D
     gamma, c, s = d
@@ -186,8 +180,6 @@ def ecvrf_verify(y, pi_string, alpha_string):
         return ecvrf_proof_to_hash(pi_string)  # Includes logic for VALID/INVALID
     else:
         return "INVALID", []
-
-
 
 
 # Internal functions
@@ -374,7 +366,8 @@ def _assert_and_sample(keys, actuals):
     global test_dict
     for key, actual in zip(keys, actuals):
         if key in test_dict and actual:
-            assert actual == test_dict[key], "{}  actual:{} != expected:{}".format(key, actual.hex(), test_dict[key].hex())
+            assert actual == test_dict[key], "{}  actual:{} != expected:{}".format(key, actual.hex(),
+                                                                                   test_dict[key].hex())
         test_dict[key + '_sample'] = actual
 
 
@@ -414,8 +407,6 @@ def _get_bit(h, i):
     """Return specified bit from string for subsequent testing"""
     h1 = int.from_bytes(h, 'little')
     return (h1 >> i) & 0x01
-
-
 
 
 def _hash(message):
@@ -484,6 +475,7 @@ assert pow(II, 2, PRIME) == PRIME - 1
 assert _is_on_curve(BASE)
 assert _scalar_multiply(BASE, ORDER) == [0, 1]
 
+
 def vrf_run(alpha_string):
     wotsplus = ws.WOTSPLUS()
     # https://research.nccgroup.com/2020/02/24/reviewing-verifiable-random-functions/
@@ -546,4 +538,3 @@ def vrf_run(alpha_string):
     # print("Beta String2:", beta_string2)
     if p_status == "VALID" and b_status == "VALID" and result == "VALID" and beta_string == beta_string2:
         print("Commitment verified")
-

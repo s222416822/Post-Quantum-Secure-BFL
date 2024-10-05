@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+# Define a fully connected neural network for MNIST
 class Mnist_2NN(nn.Module):
 	def __init__(self):
+		# Initialize the model
 		super().__init__()
 		self.fc1 = nn.Linear(784, 200)
 		self.fc2 = nn.Linear(200, 200)
@@ -16,9 +17,10 @@ class Mnist_2NN(nn.Module):
 		tensor = self.fc3(tensor)
 		return tensor
 
-
+# Define a convolutional neural network for MNIST
 class Mnist_CNN(nn.Module):
 	def __init__(self):
+		# Initialize the model
 		super().__init__()
 		self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5, stride=1, padding=2)
 		self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
@@ -37,4 +39,3 @@ class Mnist_CNN(nn.Module):
 		tensor = F.relu(self.fc1(tensor))
 		tensor = self.fc2(tensor)
 		return tensor
-
