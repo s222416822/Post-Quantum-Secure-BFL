@@ -31,4 +31,7 @@ as we transition into the quantum computing era.
 - **Arxiv Preprint**: [https://arxiv.org/pdf/2306.14772](https://arxiv.org/pdf/2306.14772)
 - **Journal Version**: []()
 
-
+## Installation
+- First install the dependencies. Commands are provided in commands.txt file
+- Main files to run such as main.py are in networks folder for different networks blockhain only, FL only or BFL.
+- Once you install, running the command is simple: python main.py -arg1 val1 -arg2 val2
