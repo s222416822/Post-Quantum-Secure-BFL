@@ -4,8 +4,11 @@ This repository contains the code used for the paper
 titled **"Performance Analysis and Evaluation of Post Quantum Secure Blockchained 
 Federated Learning"**. 
 
+<p style="text-align: center;">
+  <img src="images/preview.png" width="400" height="">
+</p>
 
-![preview.png](images/preview.png)
+
 
 ## Abstract
 As the field of quantum computing progresses, traditional cryptographic 
