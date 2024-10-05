@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 from time import time
-
 from .keccak import SHAKE128, SHAKE128_ITER
 from .CompactFIPS202 import SHAKE128 as SHAKE128_slow
-
 
 def test_all(inp=b'a', it=50):
     r1 = inp
