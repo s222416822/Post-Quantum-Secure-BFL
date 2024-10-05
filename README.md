@@ -22,6 +22,6 @@ establishing a robust framework for the integration of post-quantum cryptography
 as we transition into the quantum computing era.
 
 ## Paper
-- **Arxiv Preprint**: [Link to Arxiv Placeholder]
-- **Journal Version**: [Link to Journal Placeholder]
+- **Arxiv Preprint**: []
+- **Journal Version**: []
 
